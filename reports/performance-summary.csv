@@ -1,0 +1,4 @@
+test_name,p95_response_time_ms,average_response_time_ms,error_rate,total_requests,status,category
+Login Load Test,566.36,401.1,0,432,PASS,EXCELLENT
+Login Spike Test,11267.84,6727.15,0,1187,FAIL,WARNING
+Login Stress Test,9754.8,4744.89,0,4509,FAIL,WARNING

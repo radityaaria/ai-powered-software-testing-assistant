@@ -1,6 +1,6 @@
 import json
 import os
-
+import pandas as pd
 
 def load_json_file(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
@@ -110,6 +110,32 @@ def save_report(report_content, output_path):
 
     print(f"Comparison report berhasil disimpan ke: {output_path}")
 
+def save_summary_to_csv(results, output_path):
+    """
+    Menyimpan ringkasan hasil performance test ke file CSV.
+    """
+    summary_data = []
+
+    for result in results:
+        status = evaluate_status(result)
+        category = classify_performance(result)
+
+        summary_data.append({
+            "test_name": result["test_name"],
+            "p95_response_time_ms": round(result["p95_response_time_ms"], 2),
+            "average_response_time_ms": round(result["average_response_time_ms"], 2),
+            "error_rate": round(result["error_rate"], 4),
+            "total_requests": result["total_requests"],
+            "status": status,
+            "category": category
+        })
+
+    df = pd.DataFrame(summary_data)
+
+    os.makedirs("reports", exist_ok=True)
+    df.to_csv(output_path, index=False)
+
+    print(f"Summary CSV berhasil disimpan ke: {output_path}")
 
 def main():
     test_files = [
@@ -135,6 +161,8 @@ def main():
 
     report_content = generate_comparison_report(results)
     save_report(report_content, "reports/performance-comparison-report.md")
+
+    save_summary_to_csv(results, "reports/performance-summary.csv")
 
 
 if __name__ == "__main__":
