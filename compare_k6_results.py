@@ -1,6 +1,7 @@
 import json
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def load_json_file(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
@@ -73,6 +74,18 @@ def generate_comparison_report(results):
             f"| {category} |\n"
         )
 
+        report += "\n## Performance Charts\n\n"
+    report += "### P95 Response Time\n\n"
+    report += "![P95 Response Time](charts/p95_response_time_chart.png)\n\n"
+
+    report += "### Average Response Time\n\n"
+    report += "![Average Response Time](charts/average_response_time_chart.png)\n\n"
+
+    report += "### Error Rate\n\n"
+    report += "![Error Rate](charts/error_rate_chart.png)\n\n"
+
+    report += "### Total Requests\n\n"
+    report += "![Total Requests](charts/total_requests_chart.png)\n\n"
     report += "\n## Overall Interpretation\n\n"
     report += generate_overall_interpretation(results)
 
@@ -137,6 +150,66 @@ def save_summary_to_csv(results, output_path):
 
     print(f"Summary CSV berhasil disimpan ke: {output_path}")
 
+def generate_performance_charts(results):
+    """
+    Membuat grafik performa dari hasil load, spike, dan stress test.
+    Grafik akan disimpan ke folder reports/charts.
+    """
+    chart_dir = "reports/charts"
+    os.makedirs(chart_dir, exist_ok=True)
+
+    test_names = [result["test_name"] for result in results]
+    p95_values = [result["p95_response_time_ms"] for result in results]
+    avg_values = [result["average_response_time_ms"] for result in results]
+    error_rates = [result["error_rate"] * 100 for result in results]
+    total_requests = [result["total_requests"] for result in results]
+
+    # Chart 1: P95 Response Time
+    plt.figure(figsize=(10, 6))
+    plt.bar(test_names, p95_values)
+    plt.title("P95 Response Time Comparison")
+    plt.xlabel("Test Scenario")
+    plt.ylabel("P95 Response Time (ms)")
+    plt.xticks(rotation=20)
+    plt.tight_layout()
+    plt.savefig(os.path.join(chart_dir, "p95_response_time_chart.png"))
+    plt.close()
+
+    # Chart 2: Average Response Time
+    plt.figure(figsize=(10, 6))
+    plt.bar(test_names, avg_values)
+    plt.title("Average Response Time Comparison")
+    plt.xlabel("Test Scenario")
+    plt.ylabel("Average Response Time (ms)")
+    plt.xticks(rotation=20)
+    plt.tight_layout()
+    plt.savefig(os.path.join(chart_dir, "average_response_time_chart.png"))
+    plt.close()
+
+    # Chart 3: Error Rate
+    plt.figure(figsize=(10, 6))
+    plt.bar(test_names, error_rates)
+    plt.title("Error Rate Comparison")
+    plt.xlabel("Test Scenario")
+    plt.ylabel("Error Rate (%)")
+    plt.xticks(rotation=20)
+    plt.tight_layout()
+    plt.savefig(os.path.join(chart_dir, "error_rate_chart.png"))
+    plt.close()
+
+    # Chart 4: Total Requests
+    plt.figure(figsize=(10, 6))
+    plt.bar(test_names, total_requests)
+    plt.title("Total Requests Comparison")
+    plt.xlabel("Test Scenario")
+    plt.ylabel("Total Requests")
+    plt.xticks(rotation=20)
+    plt.tight_layout()
+    plt.savefig(os.path.join(chart_dir, "total_requests_chart.png"))
+    plt.close()
+
+    print(f"Performance charts berhasil disimpan ke folder: {chart_dir}")
+
 def main():
     test_files = [
         {
@@ -159,11 +232,12 @@ def main():
         result = extract_k6_metrics(test["file_path"], test["test_name"])
         results.append(result)
 
+    generate_performance_charts(results)
+
     report_content = generate_comparison_report(results)
     save_report(report_content, "reports/performance-comparison-report.md")
 
     save_summary_to_csv(results, "reports/performance-summary.csv")
-
 
 if __name__ == "__main__":
     main()
